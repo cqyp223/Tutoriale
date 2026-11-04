@@ -4,7 +4,7 @@
 # Spis treści:
 1. [Tutotial Git](Git/git_gpt.md)
 2. [Tutotial Git - Wersjonowanie programów w Git](Git/git_wersje_gpt.md)
-3. [Markdown – praktyczny tutorial](Markdown/Markdown - tutorial.md)
+3. [Markdown – praktyczny tutorial](Markdown/Markdown-tutorial.md)
 
 
 # Sposoby generowania plików, w formacie, PDF oraz EPUB
