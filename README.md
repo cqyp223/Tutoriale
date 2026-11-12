@@ -10,4 +10,5 @@ Niniejsze repozytorium zawiera różne tutoriale.
 2. [Tutotial Git - Wersjonowanie programów w Git](Git/git_wersje_gpt.md)
 3. [Markdown – praktyczny tutorial](Markdown/Markdown-tutorial.md)
 4. [Jak konwertować pliki w formacie **Markdown** na formaty **PDF** oraz **EPUB**](pandoc.md)
+5. [**FFMPEG** - sprzętowa konwersja video](ffmpeg.md)
 
