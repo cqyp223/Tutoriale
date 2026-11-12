@@ -1,6 +1,6 @@
 # **FFMPEG** - sprzętowa konwersja video
 
-## Zapobieganie zielonym i/lub czarnym pasom po sprzętowej konversji vodeo enkoderami kart graficznych kart AMD Radeon
+## Zapobieganie zielonym i/lub czarnym pasom po sprzętowej konwersji video enkoderami kart graficznych AMD Radeon
 
 ### "Wstrzyknięcie" informacji o przycięciu bezpośrednio do nagłówków SPS
 
@@ -45,7 +45,7 @@ Wartości przycięcia dla kodeka HEVC muszą być liczbami parzystymi (podzielny
 
 To, jakiego wyrównania (paddingu) użyje sprzętowy koder wideo, zależy od wybranego standardu kompresji (kodeka) oraz architektury samego procesora graficznego. Różne kodeki opierają się na blokach danych o innych rozmiarach.
 
-#####Oto jak koder dobiera wyrównanie:
+##### Oto jak koder dobiera wyrównanie:
 
 - Wyrównanie do 16 pikseli (MOD16) — H.264 (AVC)
 Starszy standard H.264 działa na rygorystycznej siatce tzw. makrobloków (Macroblocks). Każdy makroblok ma stały rozmiar 16x16 pikseli. Wymusza to na każdym koderze sprzętowym (niezależnie czy to AMD, Intel, czy Nvidia) fizyczne podzielenie bufora obrazu na wielokrotności liczby 16. Jest to absolutne minimum w nowoczesnym wideo.
