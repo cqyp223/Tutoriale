@@ -38,8 +38,13 @@ wyjscie.mkv
 
 - Zgodność przestrzeni kolorów: Filtr hevc_metadata edytuje oficjalne pola specyfikacji VUI (Video Usability Information). Ze względu na rygorystyczne zasady standardu H.265 dla najpopularniejszej przestrzeni kolorów 4:2:0, przycinanie musi odbywać się co 2 piksele. Ucięcie równej wartości 8 idealnie spełnia ten techniczny wymóg, eliminując ryzyko odrzucenia pliku przez rygorystyczne parsery.
 
+---
+
 **⚠️ Złota zasada parzystości (Format 4:2:0)**
+
 Wartości przycięcia dla kodeka HEVC muszą być liczbami parzystymi (podzielnymi przez 2). Standardowy obraz z Radeona używa próbkowania kolorów 4:2:0, co oznacza, że warstwa kolorów (chroma) ma o połowę mniejszą rozdzielczość niż warstwa jasności (luma). Użycie nieparzystej wartości (np. crop_right=7) spowoduje, że dekoder nie będzie w stanie poprawnie nałożyć mapy kolorów na krawędzie, co w skrajnych przypadkach może doprowadzić do błędu dekodowania lub "rozjechania" barw.
+
+---
 
 #### Kiedy encoder sprzętowy wyrównuje do 16, kiedy do 32, a kiedy do 64 pixeli?
 
@@ -48,12 +53,15 @@ To, jakiego wyrównania (paddingu) użyje sprzętowy koder wideo, zależy od wyb
 ##### Oto jak koder dobiera wyrównanie:
 
 - Wyrównanie do 16 pikseli (MOD16) — H.264 (AVC)
+
 Starszy standard H.264 działa na rygorystycznej siatce tzw. makrobloków (Macroblocks). Każdy makroblok ma stały rozmiar 16x16 pikseli. Wymusza to na każdym koderze sprzętowym (niezależnie czy to AMD, Intel, czy Nvidia) fizyczne podzielenie bufora obrazu na wielokrotności liczby 16. Jest to absolutne minimum w nowoczesnym wideo.
 
 - Wyrównanie do 32 lub 64 pikseli (MOD32 / MOD64) — HEVC (H.265)
+
 Kodek HEVC zrezygnował ze sztywnych makrobloków na rzecz CTU?. Koder może dynamicznie decydować o ich rozmiarze (od 16x16 do 64x64 pikseli). W sprzętowej implementacji AMD VCN dla HEVC, procesor często wyrównuje bufory pamięci VRAM do wielokrotności 32 pikseli (dlatego 1080p jest rozszerzane do 1088, ponieważ 1088 dzieli się przez 32), aby zoptymalizować transfer danych na szynie pamięci. Przy rozdzielczościach 4K (UHD) sprzęt może przełączyć się na wymuszony grid 64x64.
 
 - Wyrównanie do 64 lub 128 pikseli (MOD64 / MOD128) — AV1
+
 Najnowszy otwarty standard AV1 wprowadził tzw. Superblocks?. Aby osiągnąć maksymalny stopień kompresji przy wysokich rozdzielczościach, układy sprzętowe kodujące do AV1 (w tym silniki VCN 4.0 z serii RX 7000) rezerwują w pamięci obszary w wielokrotnościach 64, a dla materiałów 8K nawet 128 pikseli.
 
 Z punktu widzenia automatyzacji w skryptach Bash, najbezpieczniej jest zawsze wyrównywać materiały HEVC i AV1 do wielokrotności 32 pikseli za pomocą filtrów, co w 100% zaspokaja wymogi kontrolerów pamięci Intela i AMD, unikając powstawania nieprzewidzianych marginesów.
