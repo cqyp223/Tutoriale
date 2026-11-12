@@ -25,10 +25,10 @@ Dla pełnej automatyzacji w Twoich skryptach Bash, najwygodniej jest dokleić BS
 
 ```bash
 ffmpeg -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format vaapi \
--i wejscie.mp4 \
--c:v hevc_vaapi -b:v 5M \
--bsf:v hevc_metadata=crop_bottom=8:crop_right=8 \
-wyjscie.mkv
+	-i wejscie.mp4 \
+	-c:v hevc_vaapi -b:v 5M \
+	-bsf:v hevc_metadata=crop_bottom=8:crop_right=8 \
+	wyjscie.mkv
 ```
 
 *Wskazówka:* upewnij się, że /dev/dri/renderD128 wskazuje u Ciebie na urządzenie AMD – w systemach z wieloma układami, takimi jak RX 7600 w parze z procesorem wyposażonym w zintegrowany Intel UHD 630, Radeon często widnieje pod węzłem renderD129).
