@@ -1,6 +1,7 @@
 **⚠️ Uwaga:** [Zapoznaj się przed skorzystaniem z niniejszego repozytorium!](DISCLAIMER.md)
 
 
+# Opis tego repozytorium
 Niniejsze repozytorium zawiera różne tutoriale.
 
 
