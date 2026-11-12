@@ -66,3 +66,40 @@ Najnowszy otwarty standard AV1 wprowadził tzw. Superblocks?. Aby osiągnąć ma
 
 Z punktu widzenia automatyzacji w skryptach Bash, najbezpieczniej jest zawsze wyrównywać materiały HEVC i AV1 do wielokrotności 32 pikseli za pomocą filtrów, co w 100% zaspokaja wymogi kontrolerów pamięci Intela i AMD, unikając powstawania nieprzewidzianych marginesów.
 
+---
+
+### AV1
+
+Struktura danych AV1 opiera się na pakietach OBU (Open Bitstream Unit), które fizycznie obsługują niezależne flagi RenderWidth (szerokość renderowania) oraz RenderHeight (wysokość renderowania), oddzielając je od fizycznej liczby pikseli zakodowanej ramki (Frame Header).
+
+Niestety, filtr av1_metadata w obecnych wersjach FFmpeg nie posiada zaimplementowanych parametrów crop. Nie możesz więc wstrzyknąć tych metadanych na poziomie bitstreamu z poziomu wiersza poleceń tak samo łatwo, jak dla H.264/H.265.
+
+Aby pozbyć się zielonych marginesów generowanych przez Radeona RX 7600 w formacie AV1, musisz zastosować jedną z dwóch alternatyw:
+
+#### Opcja A: Przycięcie obrazu przed kodowaniem (Zalecane dla AV1)
+
+Najbardziej optymalne podejście dla AV1. Algorytmy kompresji AV1 pochłaniają dużo zasobów, dlatego o wiele efektywniej jest usunąć nadmiarowe piksele (zielone pasy) z obrazu zanim trafią do układu VCN. Używa się do tego standardowego filtru wideo (-vf crop), co dla Radeona często oznacza rezygnację z wymuszania hwaccel_output_format vaapi (dekodowanie pozostaje sprzętowe, ale klatki przechodzą przez pamięć RAM do filtrowania przed ponownym kodowaniem):
+
+```bash
+ffmpeg -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 \
+	-i wejscie.mp4 \
+	-vf "crop=w=iw-8:h=ih-8" \
+	-c:v av1_vaapi -b:v 5M \
+	wyjscie.mkv
+```
+
+#### Opcja B: Kadrowanie na poziomie kontenera (Muxer Crop)
+
+Jeśli masz już wyrenderowany plik AV1 w kontenerze z widocznym defektem i chcesz go naprawić bez rekompresji obrazu, powracasz do narzędzia mkvmerge, które nadpisze instrukcje odtwarzacza w pliku Matroska:
+
+```bash
+mkvmerge -o wyjscie.mkv --cropping 0:0,0,8,8 wejscie_av1.mkv
+```
+---
+
+**⚠️  Wsparcie odtwarzaczy sprzętowych**
+
+Metoda kadrowania na poziomie kontenera (Muxer Crop) opiera się na tym, że odtwarzacz wideo potrafi poprawnie odczytać i zastosować flagi MKV. Programowe odtwarzacze na Linuksie obsłużą to bezbłędnie. Należy jednak pamiętać, że niektóre systemy Smart TV lub proste sprzętowe odtwarzacze mogą ignorować flagi metadanych i mimo przepakowania nadal pokazywać surowe 1920x1088 z paskiem.
+
+---
+
