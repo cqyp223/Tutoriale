@@ -1,4 +1,100 @@
-# **FFMPEG** - sprzętowa konwersja video
+# **FFmpeg** - sprzętowa konwersja video
+
+## Kompilacja programu *FFmpeg* ze źródeł
+
+### I. Kompilacja ze źródeł
+
+Pobieranie źródeł:
+
+```bash
+git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+```1
+
+### II. Ponowna kompilacja - rekompilacja- ze źródeł
+
+Poniżej znajduje się opis, jak ponownie skompilować program *FFmpeg* w celu dodania nowej funkcj.
+
+W poniższym przykłądzie będziemy dodawać filtr: *hqdn3d*. Jest to roduktor szumu.
+
+#### Sprawdzanie obecnej konfiguracji
+
+```bash
+$HOME/opt/ffmpeg-8.0.3/bin/ffmpeg -hide_banner -buildconf
+```
+
+Powyższe polecenie powinno wypluć cos w stylu:
+
+```bash
+someuser@debian-i7:~$ $HOME/opt/ffmpeg-8.0.3/bin/ffmpeg -hide_banner -buildconf
+
+  configuration:
+    --prefix=/home/someuser/opt/ffmpeg-8.0.3
+    --enable-gpl
+    --enable-vaapi
+    --enable-libdrm
+    --enable-libdav1d
+    --disable-shared
+    --enable-static
+    --enable-filter=hqdn3d
+
+Exiting with exit code 0
+```
+#### Nowa konfiguracja
+
+Przechodzimy do głównego katalogu ze źródłami programu *FFmpeg* za pomocą polecenia ```cd /ścieżka/do/katalogu``` a następnie wykonujemy:
+
+```bash
+make distclean
+```
+
+Konfigurujemy nową kompilacje:
+
+```bash
+./configure \
+	--prefix="$HOME/opt/ffmpeg-8.0.3" \
+	--enable-vaapi \
+	--enable-libdrm \
+	--enable-libdav1d \
+	--disable-shared \
+	--enable-static \
+	--disable-ffplay \
+	--enable-filter=hqdn3d
+```
+
+Dalszą część zadania wykonujemy następującymi poleceniami:
+
+```bash
+make -j"$(nproc)"
+make install
+```
+
+#### Weryfikacja
+
+```bash
+$HOME/opt/ffmpeg-8.0.3/bin/ffmpeg -hide_banner -h filter=hqdn3d
+```
+
+Powyższe polecenie powinno wyświetlić, w terminalu, opis filtra i jego cztery paramatry. Coś w stylu:
+
+```bash
+someuser@debian-i7:~$ $HOME/opt/ffmpeg-8.0.3/bin/ffmpeg -hide_banner -h filter=hqdn3d
+Filter hqdn3d
+  Apply a High Quality 3D Denoiser.
+    slice threading supported
+    Inputs:
+       #0: default (video)
+    Outputs:
+       #0: default (video)
+hqdn3d AVOptions:
+   luma_spatial      <double>     ..FV.....T. spatial luma strength (from 0 to DBL_MAX) (default 0)
+   chroma_spatial    <double>     ..FV.....T. spatial chroma strength (from 0 to DBL_MAX) (default 0)
+   luma_tmp          <double>     ..FV.....T. temporal luma strength (from 0 to DBL_MAX) (default 0)
+   chroma_tmp        <double>     ..FV.....T. temporal chroma strength (from 0 to DBL_MAX) (default 0)
+
+This filter has support for timeline through the 'enable' option.
+
+Exiting with exit code 0
+```
 
 ## Zapobieganie zielonym i/lub czarnym pasom po sprzętowej konwersji video enkoderami kart graficznych AMD Radeon
 
