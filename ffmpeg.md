@@ -8,7 +8,7 @@ Pobieranie źródeł:
 
 ```bash
 git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
-```1
+```
 
 ### II. Ponowna kompilacja - rekompilacja- ze źródeł
 
