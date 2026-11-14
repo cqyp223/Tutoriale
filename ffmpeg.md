@@ -10,7 +10,7 @@ Pobieranie źródeł:
 git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 ```
 
-### II. Ponowna kompilacja - rekompilacja- ze źródeł
+### II. Ponowna kompilacja - rekompilacja - ze źródeł
 
 Poniżej znajduje się opis, jak ponownie skompilować program *FFmpeg* w celu dodania nowej funkcj.
 
@@ -95,6 +95,72 @@ This filter has support for timeline through the 'enable' option.
 
 Exiting with exit code 0
 ```
+## Wyciąganie informacji o faktycznej rozdzielczości strumienia video
+
+Aby wydobyć te informacje bezpośrednio ze struktury pliku lub surowego strumienia, najlepiej użyć narzędzia ffprobe (część pakietu FFmpeg) lub zaawansowanej analizy nagłówków SPS.
+
+1. Szybka metoda (ffprobe dla skryptów)
+
+*ffprobe* potrafi oddzielić rozdzielczość wyświetlaną (po zastosowaniu przycięcia) od rozdzielczości fizycznej (surowego bufora z Radeona).
+
+W terminalu wykonaj polecenie:
+
+```Bash
+ffprobe -v error -select_streams v:0 -show_entries stream=width,height,coded_width,coded_height -of default=noprint_wrappers=1 plik.mkv
+```
+
+**Jak interpretować wynik:**
+
+- width i height: Rozdzielczość wyświetlana (np. height=1080). To wymiary obrazu, które widzi widz, po uwzględnieniu flag crop ze strumienia lub kontenera.
+
+- coded_width i coded_height: Rzeczywista, fizyczza rozdzielczość sprzętowa wygenerowana przez koder VCN w wielokrotnościach makrobloków (np. coded_height=1088).
+
+**Obliczanie crop w Bashu:**
+
+Przycięcie od dołu to po prostu różnica: coded_height - height.
+
+2. Szczegółowa analiza w Mediainfo
+
+TODO
+
+<!--
+2. Szczegółowa analiza w Mediainfo
+
+Narzędzie mediainfo potrafi precyzyjnie pokazać zarówno parametry z nagłówków SPS kodeka, jak i metadane z samego kontenera MKV. Aby uzyskać pełny, surowy zrzut metadanych bez formatowania, użyj trybu Language=raw:
+
+Bash
+mediainfo --Language=raw plik.mkv | grep -iE 'Width|Height'
+W pliku, w którym wstrzyknięto metadane, zobaczysz rozdzielenie na dwa parametry:
+
+Width / Height: Rozdzielczość docelowa (np. 1920x1080).
+
+Stored_Width / Stored_Height (lub Sampled_Width): Rozdzielczość zakodowana sprzętowo wewnątrz strumienia (np. 1920x1088).
+-->
+
+3. Poziom inżynierski: Odczyt surowych flag SPS z bitstreamu
+
+Jeśli chcesz mieć absolutną pewność, jakie konkretnie flagi crop wstrzyknął filtr hevc_metadata bezpośrednio do NALU (Network Abstraction Layer Unit) kodeka H.265 (HEVC), możesz użyć potężnego narzędzia trace_headers w FFmpeg.
+
+Ten proces dekoduje pierwsze pakiety strumienia i wypisuje surowe zmienne binarne. Ogranicz analizę do 1 klatki (-frames:v 1), aby nie zalać terminala logami:
+
+```Bash
+ffmpeg -v trace -i plik.mkv -c:v copy -bsf:v trace_headers -frames:v 1 -f null - 2>&1 | grep -iE 'pic_width|pic_height|conf_win'
+```
+
+**Kluczowe wartości SPS dla HEVC, których powinieneś szukać w wyniku:**
+
+- pic_width_in_luma_samples / pic_height_in_luma_samples: Całkowity wymiar sprzętowy (np. 1088).
+
+- conformance_window_flag: Jeśli wynosi 1, oznacza to, że w SPS wstrzyknięto flagi crop.
+
+- conf_win_bottom_offset: Wartość przesunięcia (offsetu). Ważne: w standardzie HEVC dla profilu 4:2:0 offset dotyczy par pikseli luma! Zatem ucięcie 8 pikseli fizycznych zapisane jest w rejestrze jako wartość 4.
+
+--- 
+**⚠️ Różnice w nazewnictwie H.264 (AVC)**
+
+Jeśli analizujesz strumień zakodowany w H.264, odpowiedniki zmiennych w nagłówkach SPS nazywają się nieco inaczej. Zamiast conf_win, szukaj zmiennych zaczynających się od frame_crop_ (np. frame_crop_bottom_offset).
+
+---
 
 ## Zapobieganie zielonym i/lub czarnym pasom po sprzętowej konwersji video enkoderami kart graficznych AMD Radeon
 
